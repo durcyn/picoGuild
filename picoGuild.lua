@@ -64,14 +64,18 @@ function f:PLAYER_LOGIN()
 	self:Show()
 	self:RegisterEvent("GUILD_ROSTER_UPDATE")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
+	self:RegisterEvent("PLAYER_LOGOUT")
 
-	SortGuildRoster("class")
+	SortGuildRoster("rank")
 	if IsInGuild() then GuildRoster() end
 
 	self:UnregisterEvent("PLAYER_LOGIN")
 	self.PLAYER_LOGIN = nil
 end
 
+function f:PLAYER_LOGOUT()
+	SortGuildRoster("rank")
+end
 
 ------------------------------
 --      Event Handlers      --
@@ -96,7 +100,7 @@ end
 --      Tooltip!      --
 ------------------------
 
-local tip = LibStub("tektip-1.0").new(6, "LEFT", "LEFT", "CENTER", "RIGHT", "RIGHT", "RIGHT")
+local tip = LibStub("tektip-1.0").new(7, "LEFT", "LEFT", "LEFT", "CENTER", "RIGHT", "RIGHT", "RIGHT")
 function dataobj.OnLeave() tip:Hide() end
 function dataobj.OnEnter(self)
 	tip:AnchorTo(self)
@@ -116,10 +120,12 @@ function dataobj.OnEnter(self)
 				local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
 				if level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
 				elseif level > (mylevel + 5) then lr, lg, lb = 1, 0, 0 end
+				local grouped = 0
+				if UnitInParty(name) or UnitInRaid(name) then grouped = 1 end
 				if area == myarea then ar, ag, ab = 0, 1, 0 end
 				local levelcolor = (level >= (mylevel - 5) and level <= (mylevel + 5)) and "|cff00ff00" or ""
-				tip:AddMultiLine((level < 10 and "0" or "")..level, name, area or "???", note, officernote, rank,
-					lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
+				tip:AddMultiLine("+", (level < 10 and "0" or "")..level, name, area or "???", note, officernote, rank,
+					0, grouped, 0, lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
 			end
 		end
 	else
