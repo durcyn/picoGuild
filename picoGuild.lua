@@ -143,8 +143,7 @@ end
 function dataobj.OnClick()
 	if FriendsFrame:IsVisible() then HideUIPanel(FriendsFrame)
 	else
-		ToggleFriendsFrame(3)
-		FriendsFrame_Update()
+		ToggleGuildFrame()
 		GameTooltip:Hide()
 	end
 end
