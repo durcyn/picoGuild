@@ -1,4 +1,5 @@
 
+local IHASCAT = GetGuildLevelEnabled()
 
 ----------------------------
 --      Localization      --
@@ -63,11 +64,16 @@ function f:PLAYER_LOGIN()
 
 	self:Show()
 	self:RegisterEvent("GUILD_ROSTER_UPDATE")
+	self:RegisterEvent("GUILD_XP_UPDATE")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
 	self:RegisterEvent("PLAYER_LOGOUT")
 
 	SortGuildRoster("rank")
-	if IsInGuild() then GuildRoster() end
+	SortGuildRoster("class")
+	if IsInGuild() then
+		QueryGuildXP()
+		GuildRoster()
+	end
 
 	self:UnregisterEvent("PLAYER_LOGIN")
 	self.PLAYER_LOGIN = nil
@@ -87,13 +93,18 @@ end
 
 
 function f:GUILD_ROSTER_UPDATE()
-	local online = 0
-
 	if IsInGuild() then
-		for i = 1,GetNumGuildMembers(true) do if select(9, GetGuildRosterInfo(i)) then online = online + 1 end end
-		dataobj.text = string.format("%d/%d", online, GetNumGuildMembers(true))
+	local total, online = GetNumGuildMembers()
+		if IHASCAT then
+			local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
+			local level, capped = GetGuildLevel() + currentXP/(currentXP + remainingXP), dailyXP == maxDailyXP and "*" or ""
+			dataobj.text = string.format("Lv%.1f%s - %d/%d", level, capped, online, total)
+		else
+			dataobj.text = string.format("%d/%d", online, total)
+		end
 	else dataobj.text = L["No Guild"] end
 end
+f.GUILD_XP_UPDATE = f.GUILD_ROSTER_UPDATE
 
 
 ------------------------
@@ -101,16 +112,35 @@ end
 ------------------------
 
 local tip = LibStub("tektip-1.0").new(7, "LEFT", "LEFT", "LEFT", "CENTER", "RIGHT", "RIGHT", "RIGHT")
+local tip = LibStub("tektip-1.0").new(6, "LEFT", "LEFT", "CENTER", "RIGHT", "RIGHT", "RIGHT")
+local lastanchor
 function dataobj.OnLeave() tip:Hide() end
 function dataobj.OnEnter(self)
 	tip:AnchorTo(self)
+	lastanchor = self
 
 	tip:AddLine("picoGuild")
 
 	if IsInGuild() then
+		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
+		local nextLevelXP = currentXP + remainingXP
+		local percentTotal = tostring(math.ceil((currentXP / nextLevelXP) * 100))
+		local percentDaily = tostring(math.ceil((dailyXP / maxDailyXP) * 100))
+
+		local gender = UnitSex("player")
+		local name, description, standingID, barMin, barMax, barValue = GetGuildFactionInfo()
+		local factionStandingtext = GetText("FACTION_STANDING_LABEL"..standingID, gender)
+		barMax, barValue = barMax - barMin, barValue - barMin
+
 		tip:AddLine("<"..GetGuildInfo("player")..">", 1, 1, 1)
 		tip:AddLine(GetGuildRosterMOTD(), 0, 1, 0, true)
 		tip:AddLine(" ")
+
+		if IHASCAT then
+			tip:AddLine(string.format("Today:|cffffffff %d%% (%s left) - %s |rTNL", percentDaily, TextStatusBar_CapDisplayOfNumericValue(maxDailyXP - dailyXP), TextStatusBar_CapDisplayOfNumericValue(remainingXP)))
+			tip:AddLine(string.format("Rep:|cffffffff %s %d%% (%d/%d)", factionStandingtext, barValue / barMax * 100, barValue, barMax))
+			tip:AddLine(" ")
+		end
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
 		for i=1,GetNumGuildMembers(true) do
@@ -141,11 +171,8 @@ end
 -----------------------------------------
 
 function dataobj.OnClick()
-	if FriendsFrame:IsVisible() then HideUIPanel(FriendsFrame)
-	else
-		ToggleGuildFrame()
-		GameTooltip:Hide()
-	end
+	ToggleGuildFrame()
+	if GuildFrame:IsShown() then tip:Hide() else dataobj.OnEnter(lastanchor) end
 end
 
 
