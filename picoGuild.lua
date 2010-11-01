@@ -69,7 +69,6 @@ function f:PLAYER_LOGIN()
 	self:RegisterEvent("PLAYER_LOGOUT")
 
 	SortGuildRoster("rank")
-	SortGuildRoster("class")
 	if IsInGuild() then
 		QueryGuildXP()
 		GuildRoster()
