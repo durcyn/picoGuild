@@ -64,6 +64,7 @@ function f:PLAYER_LOGIN()
 	self:RegisterEvent("GUILD_ROSTER_UPDATE")
 	self:RegisterEvent("GUILD_XP_UPDATE")
 	self:RegisterEvent("CHAT_MSG_SYSTEM")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LOGOUT")
 
 	SortGuildRoster("rank")
@@ -78,6 +79,13 @@ end
 
 function f:PLAYER_LOGOUT()
 	SortGuildRoster("rank")
+end
+
+function f:PLAYER_ENTERING_WORLD()
+	if IsInGuild() then
+		QueryGuildXP()
+		GuildRoster()
+	end
 end
 
 ------------------------------
