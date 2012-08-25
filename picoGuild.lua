@@ -20,6 +20,7 @@ local L = {
 local mejoin = UnitName("player").." has joined the guild."
 local friends, colors = {}, {}
 for class,color in pairs(RAID_CLASS_COLORS) do colors[class] = string.format("%02x%02x%02x", color.r*255, color.g*255, color.b*255) end
+local remotes = 0
 
 
 -------------------------------------------
@@ -102,7 +103,7 @@ function f:GUILD_ROSTER_UPDATE()
 	local total, online = GetNumGuildMembers()
 		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
 		local level, capped = GetGuildLevel() + currentXP/(currentXP + remainingXP), dailyXP == maxDailyXP and "*" or ""
-		dataobj.text = string.format("Lv%.1f%s - %d/%d", math.floor(level*10)/10, capped, online, total)
+		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, capped, online, total, remotes)
 	else dataobj.text = L["No Guild"] end
 end
 f.GUILD_XP_UPDATE = f.GUILD_ROSTER_UPDATE
@@ -140,19 +141,37 @@ function dataobj.OnEnter(self)
 		tip:AddLine(" ")
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
+		remotes = 0
 		for i=1,GetNumGuildMembers(true) do
 			local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
-			if connected then
+			if connected and mobile then	
+				remotes = remotes + 1
+			elseif connected and not mobile then
 				local cc = RAID_CLASS_COLORS[engclass]
 				local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
 				if level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
 				elseif level > (mylevel + 5) then lr, lg, lb = 1, 0, 0 end
-				local grouped = 0
-				if UnitInParty(name) or UnitInRaid(name) then grouped = 1 end
-				if mobile then area = REMOTE_CHAT end
+				local grouped = false
+				if UnitInParty(name) or UnitInRaid(name) then grouped = true end
 				if area == myarea then ar, ag, ab = 0, 1, 0 end
 				local levelcolor = (level >= (mylevel - 5) and level <= (mylevel + 5)) and "|cff00ff00" or ""
-				tip:AddMultiLine("+", (level < 10 and "0" or "")..level, name, area or "???", note, officernote, rank, 0, grouped, 0, lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
+				tip:AddMultiLine(grouped and "+" or " ", (level < 10 and "0" or "")..level, name, area or "???", note, officernote, rank, 0, grouped and 1 or 0, 0, lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
+			end
+		end
+		if remotes > 0 then 
+			tip:AddLine(" ")
+			for i=1,GetNumGuildMembers(true) do
+				local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
+				if connected and mobile then
+					local cc = RAID_CLASS_COLORS[engclass]
+					local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
+					if level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
+					elseif level > (mylevel + 5) then lr, lg, lb = 1, 0, 0 end
+					if mobile then area = REMOTE_CHAT end
+					if area == myarea then ar, ag, ab = 0, 1, 0 end
+					local levelcolor = (level >= (mylevel - 5) and level <= (mylevel + 5)) and "|cff00ff00" or ""
+					tip:AddMultiLine(" ", (level < 10 and "0" or "")..level, name, area or "???", note, officernote, rank, 0, 0, 0, lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
+				end
 			end
 		end
 	else
