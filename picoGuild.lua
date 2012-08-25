@@ -20,7 +20,10 @@ local L = {
 local mejoin = UnitName("player").." has joined the guild."
 local friends, colors = {}, {}
 for class,color in pairs(RAID_CLASS_COLORS) do colors[class] = string.format("%02x%02x%02x", color.r*255, color.g*255, color.b*255) end
-local remotes = 0
+
+local total, online, remotes = 0,0,0
+local level
+local capped
 
 
 -------------------------------------------
@@ -78,6 +81,20 @@ function f:PLAYER_LOGIN()
 	self.PLAYER_LOGIN = nil
 end
 
+
+function f:UpdateText()
+	if IsInGuild() then
+	total, online = GetNumGuildMembers()
+		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
+		level, capped = GetGuildLevel() + currentXP/(currentXP + remainingXP), dailyXP == maxDailyXP and "*" or ""
+		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, capped, online, total, remotes)
+	else dataobj.text = L["No Guild"] end
+end
+
+------------------------------
+--      Event Handlers      --
+------------------------------
+--
 function f:PLAYER_LOGOUT()
 	SortGuildRoster("rank")
 end
@@ -89,24 +106,13 @@ function f:PLAYER_ENTERING_WORLD()
 	end
 end
 
-------------------------------
---      Event Handlers      --
-------------------------------
-
 function f:CHAT_MSG_SYSTEM(event, msg)
 	if string.find(msg, L["has come online"]) or string.find(msg, L["has gone offline"]) or msg == mejoin then dirty = true end
 end
 
 
-function f:GUILD_ROSTER_UPDATE()
-	if IsInGuild() then
-	local total, online = GetNumGuildMembers()
-		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
-		local level, capped = GetGuildLevel() + currentXP/(currentXP + remainingXP), dailyXP == maxDailyXP and "*" or ""
-		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, capped, online, total, remotes)
-	else dataobj.text = L["No Guild"] end
-end
-f.GUILD_XP_UPDATE = f.GUILD_ROSTER_UPDATE
+f.GUILD_ROSTER_UPDATE = f.UpdateText
+f.GUILD_XP_UPDATE = f.UpdateText
 
 
 ------------------------
@@ -174,6 +180,7 @@ function dataobj.OnEnter(self)
 				end
 			end
 		end
+		f:UpdateText()
 	else
 		tip:AddLine(L["Not in a guild"])
 	end
