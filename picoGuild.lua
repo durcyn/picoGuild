@@ -144,11 +144,12 @@ function dataobj.OnEnter(self)
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
 		remotes = 0
-		for i=1,GetNumGuildMembers(true) do
+		local gtotal, gonline = GetNumGuildMembers()
+		for i=1,gonline do
 			local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
 			if connected and mobile then	
 				remotes = remotes + 1
-			elseif connected and not mobile then
+			else
 				local cc = RAID_CLASS_COLORS[engclass]
 				local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
 				if level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
@@ -162,7 +163,7 @@ function dataobj.OnEnter(self)
 		end
 		if remotes > 0 then 
 			tip:AddLine(" ")
-			for i=1,GetNumGuildMembers(true) do
+			for i=1,gonline do
 				local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
 				if connected and mobile then
 					local cc = RAID_CLASS_COLORS[engclass]
