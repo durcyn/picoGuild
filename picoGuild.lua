@@ -22,7 +22,6 @@ local friends, colors = {}, {}
 for class,color in pairs(RAID_CLASS_COLORS) do colors[class] = string.format("%02x%02x%02x", color.r*255, color.g*255, color.b*255) end
 
 local total, online, remotes = 0,0,0
-local level
 
 -------------------------------------------
 --      Namespace and all that shit      --
@@ -84,8 +83,8 @@ function f:UpdateText()
 	if IsInGuild() then
 	total, online = GetNumGuildMembers()
 		local currentXP, remainingXP = UnitGetGuildXP("player")
-		level = GetGuildLevel() + currentXP/(currentXP + remainingXP)
-		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, online, total, remotes)
+		local level = GetGuildLevel() + currentXP/(currentXP + remainingXP)
+		dataobj.text = string.format("Lv%.1f - %d/%d (%d)", math.floor(level*10)/10, online, total, remotes)
 	else dataobj.text = L["No Guild"] end
 end
 
@@ -144,8 +143,7 @@ function dataobj.OnEnter(self)
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
 		remotes = 0
-		local gtotal, gonline = GetNumGuildMembers()
-		for i=1,gonline do
+		for i=1,online do
 			local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
 			if connected and mobile then	
 				remotes = remotes + 1
@@ -163,7 +161,7 @@ function dataobj.OnEnter(self)
 		end
 		if remotes > 0 then 
 			tip:AddLine(" ")
-			for i=1,gonline do
+			for i=1,online do
 				local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
 				if connected and mobile then
 					local cc = RAID_CLASS_COLORS[engclass]
