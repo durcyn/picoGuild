@@ -23,8 +23,6 @@ for class,color in pairs(RAID_CLASS_COLORS) do colors[class] = string.format("%0
 
 local total, online, remotes = 0,0,0
 local level
-local capped
-
 
 -------------------------------------------
 --      Namespace and all that shit      --
@@ -85,9 +83,9 @@ end
 function f:UpdateText()
 	if IsInGuild() then
 	total, online = GetNumGuildMembers()
-		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
-		level, capped = GetGuildLevel() + currentXP/(currentXP + remainingXP), dailyXP == maxDailyXP and "*" or ""
-		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, capped, online, total, remotes)
+		local currentXP, remainingXP = UnitGetGuildXP("player")
+		level = GetGuildLevel() + currentXP/(currentXP + remainingXP)
+		dataobj.text = string.format("Lv%.1f%s - %d/%d (%d)", math.floor(level*10)/10, online, total, remotes)
 	else dataobj.text = L["No Guild"] end
 end
 
@@ -129,9 +127,8 @@ function dataobj.OnEnter(self)
 	tip:AddLine("picoGuild")
 
 	if IsInGuild() then
-		local currentXP, remainingXP, dailyXP, maxDailyXP = UnitGetGuildXP("player")
+		local currentXP, remainingXP = UnitGetGuildXP("player")
 		local nextLevelXP = currentXP + remainingXP
-		local percentDaily = math.ceil((dailyXP / maxDailyXP) * 100)
 
 		local gender = UnitSex("player")
 		local name, description, standingID, barMin, barMax, barValue = GetGuildFactionInfo()
@@ -142,7 +139,6 @@ function dataobj.OnEnter(self)
 		tip:AddLine(GetGuildRosterMOTD(), 0, 1, 0, true)
 		tip:AddLine(" ")
 
-		tip:AddLine(string.format("Today:|cffffffff %d%% (%s left) - %s |rTNL", percentDaily, TextStatusBar_CapDisplayOfNumericValue(maxDailyXP - dailyXP), TextStatusBar_CapDisplayOfNumericValue(remainingXP)))
 		tip:AddLine(string.format("Rep:|cffffffff %s %d%% (%d/%d)", factionStandingtext, barValue / barMax * 100, barValue, barMax))
 		tip:AddLine(" ")
 
