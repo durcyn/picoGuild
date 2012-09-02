@@ -150,6 +150,7 @@ function dataobj.OnEnter(self)
 		tip:AddLine(" ")
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
+		local total, online = GetNumGuildMembers()
 		local remotes = 0
 		for i=1,online do
 			local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
