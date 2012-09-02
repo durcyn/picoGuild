@@ -21,8 +21,6 @@ local mejoin = UnitName("player").." has joined the guild."
 local friends, colors = {}, {}
 for class,color in pairs(RAID_CLASS_COLORS) do colors[class] = string.format("%02x%02x%02x", color.r*255, color.g*255, color.b*255) end
 
-local total, online, remotes = 0,0,0
-
 -------------------------------------------
 --      Namespace and all that shit      --
 -------------------------------------------
@@ -48,7 +46,7 @@ end)
 
 
 local orig = GuildRoster
-GuildRoster = function(...)
+_G.GuildRoster = function(...)
 	elapsed, dirty = 0, false
 	return orig(...)
 end
@@ -68,10 +66,10 @@ function f:PLAYER_LOGIN()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LOGOUT")
 
-	SortGuildRoster("rank")
 	if IsInGuild() then
 		QueryGuildXP()
 		GuildRoster()
+		SortGuildRoster("rank")
 	end
 
 	self:UnregisterEvent("PLAYER_LOGIN")
@@ -81,9 +79,17 @@ end
 
 function f:UpdateText()
 	if IsInGuild() then
-	total, online = GetNumGuildMembers()
+	local total, online = GetNumGuildMembers()
 		local currentXP, remainingXP = UnitGetGuildXP("player")
 		local level = GetGuildLevel() + currentXP/(currentXP + remainingXP)
+		local remotes = 0 
+		for i=1,online do
+			local _, _, _, _, _, _, _, _, connected, _, _, _, _, mobile = GetGuildRosterInfo(i)
+			if connected and mobile then	
+				remotes = remotes + 1
+			end
+		end
+		online = online - remotes
 		dataobj.text = string.format("Lv%.1f - %d/%d (%d)", math.floor(level*10)/10, online, total, remotes)
 	else dataobj.text = L["No Guild"] end
 end
@@ -93,7 +99,9 @@ end
 ------------------------------
 --
 function f:PLAYER_LOGOUT()
-	SortGuildRoster("rank")
+	if IsInGuild() then
+		SortGuildRoster("rank")
+	end
 end
 
 function f:PLAYER_ENTERING_WORLD()
@@ -142,7 +150,7 @@ function dataobj.OnEnter(self)
 		tip:AddLine(" ")
 
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
-		remotes = 0
+		local remotes = 0
 		for i=1,online do
 			local name, rank, rankIndex, level, class, area, note, officernote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
 			if connected and mobile then	
