@@ -112,14 +112,17 @@ end
 --      Event Handlers      --
 ------------------------------
 --
-
-function f:GUILD_XP_UPDATE()
+function f:PLAYER_ENTERING_WORLD()
 	if IsInGuild() then
 		QueryGuildXP()
 		GuildRoster()
-		f:UpdateText()
 	end
 end
+
+function f:GUILD_XP_UPDATE()
+	f:UpdateText()
+end
+
 function f:GUILD_ROSTER_UPDATE()
 	if IsInGuild() then
 		wipe(cache)
