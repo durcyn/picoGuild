@@ -130,9 +130,13 @@ function f:GUILD_ROSTER_UPDATE()
 		remote = 0
 		for i = 1, total do
 			local name, rank, rnum, level, class, area, pnote, onote, connected, status, engclass, points, pointrank, mobile = GetGuildRosterInfo(i)
-			if mobile then area = REMOTE_CHAT end
-			insert(cache, {name=name,rank=rank,rnum=rnum,level=level,class=class,area=area,pnote=pnote,onote=onote,connected=connected,status=status,engclass=engclass,points=points,pointrank=pointrank,mobile=mobile})
-			if mobile then remote = remote + 1 end
+			if connected then
+				if mobile then 
+					area = REMOTE_CHAT
+					remote = remote + 1
+				end
+				insert(cache, {name=name,rank=rank,rnum=rnum,level=level,class=class,area=area,pnote=pnote,onote=onote,engclass=engclass,mobile=mobile})
+			end
 		end
 		sort(cache, function(a,b) return a.rnum < b.rnum end)
 		f:UpdateText()
