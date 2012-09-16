@@ -181,7 +181,7 @@ function dataobj.OnEnter(self)
 		local mylevel, myarea = UnitLevel("player"), GetRealZoneText()
 
 		for k,v in pairs(cache) do
-			if v.connected and not v.mobile then
+			if not v.mobile then
 				local cc = RAID_CLASS_COLORS[v.engclass]
 				local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
 				if v.level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
@@ -196,7 +196,7 @@ function dataobj.OnEnter(self)
 		if remote > 0 then 
 			tip:AddLine(" ")
 			for k,v in pairs(cache) do
-				if v.connected and v.mobile then
+				if v.mobile then
 					local cc = RAID_CLASS_COLORS[v.engclass]
 					local lr, lg, lb, ar, ag, ab = 0, 1, 0, 1, 1, 1
 					if v.level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
