@@ -138,7 +138,7 @@ function f:GUILD_ROSTER_UPDATE()
 				insert(cache, {name=name,rank=rank,rnum=rnum,level=level,class=class,area=area,pnote=pnote,onote=onote,engclass=engclass,mobile=mobile})
 			end
 		end
-		sort(cache, function(a,b) return a.rnum < b.rnum end)
+		sort(cache, function(a,b) if a.rnum == b.rnum then return a.name < b.name else return a.rnum < b.rnum end end)
 		f:UpdateText()
 	end
 end
@@ -187,7 +187,7 @@ function dataobj.OnEnter(self)
 				if v.level < (mylevel - 5) then lr, lg, lb = .6, .6, .6
 				elseif v.level > (mylevel + 5) then lr, lg, lb = 1, 0, 0 end
 				local grouped = false
-				if UnitInParty(name) or UnitInRaid(name) then grouped = true end
+				if UnitInParty(v.name) or UnitInRaid(v.name) then grouped = true end
 				if v.area == myarea then ar, ag, ab = 0, 1, 0 end
 				local levelcolor = (v.level >= (mylevel - 5) and v.level <= (mylevel + 5)) and "|cff00ff00" or ""
 				tip:AddMultiLine(grouped and "+" or " ", (v.level < 10 and "0" or "")..v.level, v.name, v.area or "???", v.pnote, v.onote, v.rank, 0, grouped and 1 or 0, 0, lr,lg,lb, cc.r,cc.g,cc.b, ar,ag,ab, nil,nil,nil, 1,1,0, .7,.7,1)
